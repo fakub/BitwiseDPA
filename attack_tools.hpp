@@ -9,9 +9,13 @@
 #include <boost/filesystem.hpp>
 #include <stdexcept>
 #include <cstdlib>
+#include <yaml-cpp/yaml.h>
+#include <stdexcept>
+#include <exception>
 
 #include "types.hpp"
 #include "hex_tools.hpp"
+#include "max_tools.hpp"
 #include "vector_tools.hpp"
 #include "manip_tools.hpp"
 #include "sbox.hpp"

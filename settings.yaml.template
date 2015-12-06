@@ -1,0 +1,4 @@
+---
+dirname: "../traces/AES_traces"
+n_traces: 32
+attack_bytes: 16   # 1..16
