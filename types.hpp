@@ -6,7 +6,7 @@ using namespace boost::filesystem;
 typedef unsigned char byte;
 
 struct trace_t {
-	vector<bool> * trace;
+	vector<byte> * trace;   // cca 30% faster than vector<bool>
 	byte * pt;
 	byte * ct;
 };

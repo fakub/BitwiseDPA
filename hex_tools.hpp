@@ -22,6 +22,11 @@ inline void nbytes2hex(const byte * bytes, byte * hex, const byte n = 16) {
 }
 
 inline void printnbytes(const byte * val, const byte n = 16, const string delim = " ") {
-	for (int i=0; i<n-1; i++) printf("%02x%s", val[i], delim.c_str());
-	printf("%02x\n", val[n-1]);
+	for (int i=0; i<n-1; i++) fprintf(stderr, "%02x%s", val[i], delim.c_str());
+	fprintf(stderr, "%02x", val[n-1]);
+}
+
+inline int equal(const byte * v1, const byte * v2, const byte n = 16) {
+	for (int i=0; i<n; i++) if (v1[i] ^ v2[i]) return i;
+	return -1;
 }

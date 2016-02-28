@@ -26,12 +26,12 @@ inline void load_traces(const string dirname, vector<trace_t> & traces, unsigned
 			hex2nbytes(ct.c_str(), trace_read.ct);
 			
 			// trace
-			trace_read.trace = new vector<bool>();
+			trace_read.trace = new vector<byte>();
 			
-			ifstream file(f->path().string(), std::ios::binary);
+			ifstream file(f->path().string(), ios::binary);
 			char data;
 			while (file.read(&data, 1))
-				for (int j = 0; j < 8; j++)
+				for (int j = 7; j >= 0; j--)
 					trace_read.trace->push_back((data >> j) & 1);
 			
 			traces.push_back(trace_read);

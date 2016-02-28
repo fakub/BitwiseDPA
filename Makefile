@@ -1,9 +1,12 @@
-default: attack.cpp
-	g++ -Wall -o attack attack.cpp -std=c++0x -lboost_system -lboost_filesystem -lyaml-cpp
+CXXFLAGS = -O3 -Wall -std=c++0x
+LIBS = -lboost_system -lboost_filesystem -lyaml-cpp
+
+attack: attack.cpp
+	$(CXX) -o attack attack.cpp $(CXXFLAGS) $(LIBS)
 
 test: test.cpp
-	g++ -Wall -o test test.cpp -std=c++0x -lboost_system -lboost_filesystem -lyaml-cpp
+	$(CXX) -o test   test.cpp   $(CXXFLAGS) $(LIBS)
 
-all: attack.cpp test.cpp
-	g++ -Wall -o attack attack.cpp -std=c++0x -lboost_system -lboost_filesystem -lyaml-cpp
-	g++ -Wall -o test test.cpp -std=c++0x -lboost_system -lboost_filesystem -lyaml-cpp
+default: attack
+
+all: attack test

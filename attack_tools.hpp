@@ -12,6 +12,7 @@
 #include <yaml-cpp/yaml.h>
 #include <stdexcept>
 #include <exception>
+#include <ctime>
 
 #include "types.hpp"
 #include "hex_tools.hpp"
@@ -19,6 +20,7 @@
 #include "vector_tools.hpp"
 #include "manip_tools.hpp"
 #include "sbox.hpp"
+#include "rijinv.hpp"
 
 #pragma once
 

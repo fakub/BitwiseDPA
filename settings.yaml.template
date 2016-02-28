@@ -1,4 +1,16 @@
 ---
-dirname: "../traces/AES_traces"
+
+dirname: "../attack/traces/AES_traces"
+
+# will only use first n traces (default -1 ~ all)
 n_traces: 32
-attack_bytes: 16   # 1..16
+
+# will attack first n bytes (1..16, default 16)
+attack_bytes: 16
+
+# will emphasize positions of given key's bytes (default 2b7e151628aed2a6abf7158809cf4f3c)
+# can be partial (e.g. exp_key: 2b7e15)
+exp_key: 2b7e151628aed2a6abf7158809cf4f3c
+
+# what hypothesis will be used: sbox or rijinv (default sbox)
+target: sbox   # target: rijinv
