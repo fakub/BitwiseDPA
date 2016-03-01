@@ -34,13 +34,30 @@ try {
 		hex2nbytes(exp_key_str.c_str(), exp_key, exp_key_str.length() > 32 ? 16 : exp_key_str.length() / 2);
 	}
 	
-	byte target_b = 0;
+	byte target_b;
+	byte linTable[256];
 	if (const YAML::Node target_node = config["target"]) {
 		const string target = config["target"].as<string>();
-		if (!target.compare("rijinv"))
-			target_b = 1;
-		else if (target.compare("sbox"))
-			throw runtime_error("Only possible \"target\" values are \"rijinv\" and \"sbox\".");
+		if (!target.compare("rijinv")) {
+			target_b = 0x05;
+		} else if (!target.compare("sbox")) {
+			target_b = 0x03;
+		} else {
+			hex2nbytes(target.c_str(), &target_b, 1);
+			const string pathname = "sboxes";
+			const string filename = pathname + "/0x" + target;
+			path p(pathname);
+			if (!exists(status(p)))
+				throw runtime_error("\"sboxes\" directory not found!\nYou can still use \"sbox\" or \"rijinv\" as attack target.");
+			if (!exists(filename)) {
+				throw runtime_error("Target 0x" + target + " is not valid i.e. not coprime with x^8 + 1 !\n(File " + filename + " not found.)");
+			}
+			ifstream infile(filename);
+			string line;
+			byte i = 0;
+			while (getline(infile, line))
+				linTable[i++] = stoi(line, nullptr, 0);
+		}
 	}
 	
 	
@@ -83,7 +100,7 @@ try {
 			unsigned int num1[tb_size] = {0};
 			
 			// most demanding part, manually unrolled
-			if (target_b == 0) {   // i.e. target is sbox
+			if (target_b == 0x03) {   // i.e. target is sbox
 				for (auto trace_s: traces) {
 					hyp = sboxTable[trace_s.pt[bnum] ^ kguess];
 					
@@ -97,9 +114,23 @@ try {
 						}
 					}
 				}
-			} else {   // i.e. target is rijndael inverse
+			} else if (target_b == 0x05) {   // i.e. target is rijndael inverse
 				for (auto trace_s: traces) {
 					hyp = rijInvTable[trace_s.pt[bnum] ^ kguess];
+					
+					for (auto tb: targetbits) {
+						if (hyp & (1 << tb)) {
+							mean1[tb] += *(trace_s.trace);
+							num1[tb] += 1;
+						} else {
+							mean0[tb] += *(trace_s.trace);
+							num0[tb] += 1;
+						}
+					}
+				}
+			} else {
+				for (auto trace_s: traces) {
+					hyp = linTable[trace_s.pt[bnum] ^ kguess];
 					
 					for (auto tb: targetbits) {
 						if (hyp & (1 << tb)) {
