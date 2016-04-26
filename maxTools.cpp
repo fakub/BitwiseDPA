@@ -1,6 +1,6 @@
-#pragma once
+#include "types.hpp"
 
-inline ma_t maxargmax(const vector<double> & v) {
+ma_t maxargmax(const vector<double> & v) {
 	ma_t result;
 	auto max_iter = max_element(v.begin(), v.end());
 	result.argmax = max_iter - v.begin();

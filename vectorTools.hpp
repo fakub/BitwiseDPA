@@ -1,5 +1,8 @@
 #pragma once
 
+
+// basic vector operations
+
 template<typename T, typename U>
 vector<T>& operator+= (vector<T> & a, const vector<U> & b)
 {
@@ -30,7 +33,10 @@ vector<T>& operator/= (vector<T> & a, const U b)
 }
 
 template<typename T>
-T templ_abs(const T i) {return abs(i);}
+T templ_abs(const T i)
+{
+	return abs(i);
+}
 
 template<typename T>
 vector<T> absv(const vector<T> & a)

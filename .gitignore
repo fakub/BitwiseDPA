@@ -1,4 +1,5 @@
-attack
+main
 test
 *.yaml
 *.log
+*.o
