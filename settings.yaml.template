@@ -1,16 +1,19 @@
 ---
 
-dirname: "../attack/traces/AES_traces"
+dirname: "path/to/binary/memory/traces"
 
-# will only use first n traces (default -1 ~ all)
-n_traces: 32
+# Number of traces to be used for the attack; default -1 (~ all)
+n_traces: 256
 
-# will attack first n bytes (1..16, default 16)
-attack_bytes: 16
+# Key byte to be attacked; 0..15
+attack_byte: 0
 
-# will emphasize positions of given key's bytes (default 2b7e151628aed2a6abf7158809cf4f3c)
-# can be partial (e.g. exp_key: 2b7e15)
+# Target of the attack:
+# 	      sbox ... original AES SBox; default
+# 	    rijinv ... Rijndael inverse
+# 	      0x1f ... different SBox
+# 	0b10011101 ... specific target (1 bit)
+target: sbox
+
+# Expected key; default 2b7e151628aed2a6abf7158809cf4f3c
 exp_key: 2b7e151628aed2a6abf7158809cf4f3c
-
-# what hypothesis will be used: sbox or rijinv (default sbox)
-target: sbox   # target: rijinv
