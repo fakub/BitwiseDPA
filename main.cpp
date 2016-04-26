@@ -16,6 +16,7 @@ try {
 	if (argc < 2) throw runtime_error("Usage:\n\t$ ./main settings.yaml");
 	fprintf(stderr, "\n");
 	
+	
 	// ===   P R E P A R E   A T T A C K   =======================================
 	
 	// load settings
@@ -60,36 +61,36 @@ try {
 	vector<trace_t> traces;
 	load_traces(dirname, traces, n_traces);
 	
-	
-	// o=============o
-	// | Attack byte |
-	// o=============o
-	
+	// init attack variables
 	byte bestguess(0);
 	byte besttb(0);
 	double maxdiff(0.0);
-	byte hyp;
+	byte kguess(0);
+	byte hyp(0);
 	unsigned int trace_size(traces.front().trace->size());
-	printf("---\n");   // init YAML output to stdout
+	vector<kg_tb> diffs;
+	diffs.resize(256);
+	for (kg_tb & kt: diffs) kt.tbits.resize(targetbits);
 	
+	
+	// ===   S T A R T !   =======================================================
+	
+	// init YAML output to stdout
+	printf("---\n");
+	
+	// print progress bar
 	fprintf(stderr, "Attacking %2d. byte\n\t# of traces: %d\n\ttarget: %s\n", attack_byte, n_traces, target.c_str());
-	//~ printf("%d:   # byte\n", attack_byte);   // moved to filename, was: // YAML
 	fprintf(stderr, "________________________________________________________________\n");
 	
 	// measure elapsed time begin
 	clock_t begin(clock());
 	
-	// prepare memory for results
-	vector<kg_tb> diffs;
-	diffs.resize(256);
-	for (kg_tb & kt: diffs) kt.tbits.resize(targetbits);
-	
-	// loop key guesses
-	byte kguess(0);
+	// ---   begin loop key guesses   --------------------------------------------
 	do {
+		// progress
 		if (!(kguess & 0x03)) fprintf(stderr, ".");
 		
-		// initiate mean, num
+		// init mean, num
 		vector<double> mean1[targetbits];
 		for (auto & v: mean1) v.resize(trace_size, 0.0);
 		vector<double> mean0[targetbits];
@@ -101,9 +102,11 @@ try {
 		
 		// most demanding part
 		for (auto trace_s: traces) {
+			// what we expect
 			hyp = targetTable[trace_s.pt[attack_byte] ^ kguess];
 			
 			for (byte tb=0; tb<targetbits; tb++) {
+				// switch traces according to what we expect
 				if (hyp & (1 << tb)) {
 					mean1[tb] += *(trace_s.trace);
 					num1[tb] += 1;
@@ -114,16 +117,17 @@ try {
 			}
 		}
 		
-		// mean value
+		// compute mean value
 		for (byte i = 0; i < targetbits; i++) {
 			if (num1[i]) mean1[i] /= num1[i];
 			if (num0[i]) mean0[i] /= num0[i];
 		}
 		
+		// init max diffs
 		vector<vector<double>> absdiff;
 		absdiff.resize(targetbits);
 		
-		// abs value of means difference
+		// abs value of difference of means
 		for (byte i=0; i<targetbits; i++)
 			absdiff[i] = absv(mean1[i] - mean0[i]);
 		
@@ -132,19 +136,19 @@ try {
 		diffs[kguess].kguess = kguess;
 		
 	} while (++kguess);
+	// ---   end loop key guesses   ----------------------------------------------
 	fprintf(stderr, "\n");
 	
 	// measure elapsed time end
 	clock_t end(clock());
 	double elapsed(static_cast<double>(end - begin) / CLOCKS_PER_SEC);
 	
-	
-	// Print table for each target bit
-	
+	// print table for each target bit
 	double tmpmax(0.0);
 	for (byte tb=0; tb<targetbits; tb++) {
 		fprintf(stderr, "\n  Target bit %d:\n=================\n   No. |     Diffs | Keyguess | Argument\n=========================================\n", tb);
-		printf("%d:   # target bit\n", tb);   // YAML
+		// YAML output
+		printf("%d:   # target bit\n", tb);
 		
 		// sort at target bit by max
 		sort(diffs.begin(), diffs.end(), sort_by_tb(tb));
@@ -156,8 +160,10 @@ try {
 			maxdiff = tmpmax;
 			fprintf(stderr, "New local max: %.7f\n-------------------------\n", tmpmax);
 		}
+		// get rank of expected key
 		int exp_index(static_cast<int>(find_if(diffs.rbegin(), diffs.rend(), [attack_byte, exp_key](const kg_tb & kt) {return kt.kguess == exp_key[attack_byte];}) - diffs.rbegin()));
 		
+		// print full table of results
 		int i(0);
 		for (auto kg = diffs.rbegin(); kg != diffs.rend(); ++kg, i++) {
 			if (i <= 2 || abs(i-exp_index) <= 2) {
@@ -165,16 +171,15 @@ try {
 			} else if (i == 3 || i-exp_index == 3) {
 				fprintf(stderr, "     : |         : |        : |        :\n");
 			}
-			printf("- - %.7f\n  - %d%s\n  - %d\n", kg->tbits[tb].max, kg->kguess, i == exp_index ? "   # expected" : "", kg->tbits[tb].argmax);   // two spaces removed // YAML
+			// YAML output
+			printf("- - %.7f\n  - %d%s\n  - %d\n", kg->tbits[tb].max, kg->kguess, i == exp_index ? "   # expected" : "", kg->tbits[tb].argmax);
 		}
 		fprintf(stderr, "\n");
 	}
 	// print elapsed time
 	fprintf(stderr, "Time per %d. byte: %01.0f:%02.0f:%02.0f\n\n", attack_byte, floor(elapsed/3600.0), floor(fmod(elapsed,3600.0)/60.0), fmod(elapsed,60.0));
 	
-	
-	// Print final result
-	
+	// print best guess
 	fprintf(stderr, "o==============================================================o\n");
 	fprintf(stderr, "| Best: %02x   (diff: %0.3f, at %d. target bit)                   |\n", bestguess, maxdiff, besttb);
 	fprintf(stderr, "| Exp:  %02x                                                     |\n", exp_key[attack_byte]);
